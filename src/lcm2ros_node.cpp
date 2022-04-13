@@ -16,12 +16,13 @@ ros::Publisher desire_q_pub;
 ros::Publisher desire_v_pub;
 ros::Publisher desire_vdot_pub;
 
-ros::Publisher desire_tau_pub;
-
 ros::Publisher state_com_x_pub;
 ros::Publisher state_com_u_pub;
 ros::Publisher desire_com_x_pub;
 ros::Publisher desire_com_u_pub;
+
+ros::Publisher state_cost_pub;
+ros::Publisher desire_tau_pub;
 
 pthread_t thread_lcm;
 
@@ -63,10 +64,6 @@ public:
     {
       desire_vdot_pub.publish(f64array_msg);
     }
-    else if (chan == "desire/tau")
-    {
-      desire_tau_pub.publish(f64array_msg);
-    }
     else if (chan == "state/com/x")
     {
       state_com_x_pub.publish(f64array_msg);
@@ -82,6 +79,14 @@ public:
     else if (chan == "desire/com/u")
     {
       desire_com_u_pub.publish(f64array_msg);
+    }
+    else if (chan == "state/cost")
+    {
+      state_cost_pub.publish(f64array_msg);
+    }
+    else if (chan == "desire/tau")
+    {
+      desire_tau_pub.publish(f64array_msg);
     }
   }
 };
@@ -119,12 +124,14 @@ bool lcmInitial(lcm::LCM &lcm)
   lcm.subscribe("desire/v", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
 
-  lcm.subscribe("desire/tau", &MsgHandler::f64arrayCallback, &msgHandler);
-
   lcm.subscribe("state/com/x", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("state/com/u", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/com/x", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/com/u", &MsgHandler::f64arrayCallback, &msgHandler);
+
+  lcm.subscribe("state/cost", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("desire/tau", &MsgHandler::f64arrayCallback, &msgHandler);
+
   return true;
 }
 
@@ -137,12 +144,13 @@ void topicInitial(ros::NodeHandle &nh)
   desire_v_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/v", 1000);
   desire_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/vdot", 1000);
 
-  desire_tau_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/tau", 1000);
-
   state_com_x_pub = nh.advertise<std_msgs::Float64MultiArray>("state/com/x", 1000);
   state_com_u_pub = nh.advertise<std_msgs::Float64MultiArray>("state/com/u", 1000);
   desire_com_x_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/com/x", 1000);
   desire_com_u_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/com/u", 1000);
+
+  state_cost_pub = nh.advertise<std_msgs::Float64MultiArray>("state/cost", 1000);
+  desire_tau_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/tau", 1000);
 }
 
 void sigintHandler(int sig)
