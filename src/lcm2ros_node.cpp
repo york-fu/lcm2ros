@@ -12,6 +12,9 @@
 ros::Publisher state_q_pub;
 ros::Publisher state_v_pub;
 ros::Publisher state_vdot_pub;
+ros::Publisher filter_state_q_pub;
+ros::Publisher filter_state_v_pub;
+ros::Publisher filter_state_vdot_pub;
 ros::Publisher desire_q_pub;
 ros::Publisher desire_v_pub;
 ros::Publisher desire_vdot_pub;
@@ -51,6 +54,18 @@ public:
     else if (chan == "state/vdot")
     {
       state_vdot_pub.publish(f64array_msg);
+    }
+    else if (chan == "filter/state/q")
+    {
+      filter_state_q_pub.publish(f64array_msg);
+    }
+    else if (chan == "filter/state/v")
+    {
+      filter_state_v_pub.publish(f64array_msg);
+    }
+    else if (chan == "filter/state/vdot")
+    {
+      filter_state_vdot_pub.publish(f64array_msg);
     }
     else if (chan == "desire/q")
     {
@@ -120,6 +135,9 @@ bool lcmInitial(lcm::LCM &lcm)
   lcm.subscribe("state/q", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("state/v", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("state/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("filter/state/q", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("filter/state/v", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("filter/state/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/q", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/v", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
@@ -140,6 +158,9 @@ void topicInitial(ros::NodeHandle &nh)
   state_q_pub = nh.advertise<std_msgs::Float64MultiArray>("state/q", 1000);
   state_v_pub = nh.advertise<std_msgs::Float64MultiArray>("state/v", 1000);
   state_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("state/vdot", 1000);
+  filter_state_q_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/state/q", 1000);
+  filter_state_v_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/state/v", 1000);
+  filter_state_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/state/vdot", 1000);
   desire_q_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/q", 1000);
   desire_v_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/v", 1000);
   desire_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/vdot", 1000);
@@ -161,8 +182,23 @@ void sigintHandler(int sig)
   exit(EXIT_SUCCESS);
 }
 
+int32_t process_rt()
+{
+  int32_t ret;
+  pid_t pid = getpid();
+  struct sched_param param;
+  param.sched_priority = sched_get_priority_max(SCHED_FIFO); // SCHED_RR
+  ret = sched_setscheduler(pid, SCHED_FIFO, &param);
+  if (ret != 0)
+  {
+    printf("Failed to set rt of process %d. %s\n", pid, strerror(ret));
+  }
+  return ret;
+}
+
 int main(int argc, char **argv)
 {
+  process_rt();
   ros::init(argc, argv, "lcm2ros");
   ros::NodeHandle nh;
   signal(SIGINT, sigintHandler);
