@@ -9,6 +9,15 @@
 #include <sstream>
 #include <signal.h>
 
+ros::Publisher joint_q_pub;
+ros::Publisher joint_v_pub;
+ros::Publisher joint_vdot_pub;
+ros::Publisher joint_current_pub;
+
+ros::Publisher filter_joint_q_pub;
+ros::Publisher filter_joint_v_pub;
+ros::Publisher filter_joint_vdot_pub;
+
 ros::Publisher state_q_pub;
 ros::Publisher state_v_pub;
 ros::Publisher state_vdot_pub;
@@ -66,6 +75,34 @@ public:
     else if (chan == "filter/state/vdot")
     {
       filter_state_vdot_pub.publish(f64array_msg);
+    }
+    else if (chan == "joint/q")
+    {
+      joint_q_pub.publish(f64array_msg);
+    }
+    else if (chan == "joint/v")
+    {
+      joint_v_pub.publish(f64array_msg);
+    }
+    else if (chan == "joint/vdot")
+    {
+      joint_vdot_pub.publish(f64array_msg);
+    }
+    else if (chan == "joint/current")
+    {
+      joint_current_pub.publish(f64array_msg);
+    }
+    else if (chan == "filter/joint/q")
+    {
+      filter_joint_q_pub.publish(f64array_msg);
+    }
+    else if (chan == "filter/joint/v")
+    {
+      filter_joint_v_pub.publish(f64array_msg);
+    }
+    else if (chan == "filter/joint/vdot")
+    {
+      filter_joint_vdot_pub.publish(f64array_msg);
     }
     else if (chan == "desire/q")
     {
@@ -132,6 +169,15 @@ bool lcmInitial(lcm::LCM &lcm)
   }
 
   MsgHandler msgHandler;
+
+  lcm.subscribe("joint/q", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("joint/v", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("joint/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("joint/current", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("filter/joint/q", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("filter/joint/v", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("filter/joint/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
+
   lcm.subscribe("state/q", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("state/v", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("state/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
@@ -155,6 +201,14 @@ bool lcmInitial(lcm::LCM &lcm)
 
 void topicInitial(ros::NodeHandle &nh)
 {
+  joint_q_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/q", 1000);
+  joint_v_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/v", 1000);
+  joint_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/vdot", 1000);
+  joint_current_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/current", 1000);
+  filter_joint_q_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/joint/q", 1000);
+  filter_joint_v_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/joint/v", 1000);
+  filter_joint_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/joint/vdot", 1000);
+
   state_q_pub = nh.advertise<std_msgs::Float64MultiArray>("state/q", 1000);
   state_v_pub = nh.advertise<std_msgs::Float64MultiArray>("state/v", 1000);
   state_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("state/vdot", 1000);
