@@ -33,6 +33,12 @@ ros::Publisher state_com_u_pub;
 ros::Publisher desire_com_x_pub;
 ros::Publisher desire_com_u_pub;
 
+ros::Publisher state_phase_pub;
+ros::Publisher desire_phase_pub;
+
+ros::Publisher state_L_pub;
+ros::Publisher desire_L_pub;
+
 ros::Publisher state_cost_pub;
 ros::Publisher desire_tau_pub;
 
@@ -44,6 +50,22 @@ private:
   struct timespec tv;
 
 public:
+  void f64Callback(const lcm::ReceiveBuffer *rbuf,
+                   const std::string &chan,
+                   const lcm_std_msgs::Float64 *msg)
+  {
+    std_msgs::Float64 f64Msg;
+    f64Msg.data = msg->data;
+    if (chan == "state/phase")
+    {
+      state_phase_pub.publish(f64Msg);
+    }
+    else if (chan == "desire/phase")
+    {
+      desire_phase_pub.publish(f64Msg);
+    }
+  }
+
   void f64arrayCallback(const lcm::ReceiveBuffer *rbuf,
                         const std::string &chan,
                         const lcm_std_msgs::Float64MultiArray *msg)
@@ -132,6 +154,14 @@ public:
     {
       desire_com_u_pub.publish(f64array_msg);
     }
+    else if (chan == "state/L")
+    {
+      state_L_pub.publish(f64array_msg);
+    }
+    else if (chan == "desire/L")
+    {
+      desire_L_pub.publish(f64array_msg);
+    }
     else if (chan == "state/cost")
     {
       state_cost_pub.publish(f64array_msg);
@@ -193,6 +223,12 @@ bool lcmInitial(lcm::LCM &lcm)
   lcm.subscribe("desire/com/x", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/com/u", &MsgHandler::f64arrayCallback, &msgHandler);
 
+  lcm.subscribe("state/phase", &MsgHandler::f64Callback, &msgHandler);
+  lcm.subscribe("desire/phase", &MsgHandler::f64Callback, &msgHandler);
+
+  lcm.subscribe("state/L", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("desire/L", &MsgHandler::f64arrayCallback, &msgHandler);
+
   lcm.subscribe("state/cost", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/tau", &MsgHandler::f64arrayCallback, &msgHandler);
 
@@ -223,6 +259,12 @@ void topicInitial(ros::NodeHandle &nh)
   state_com_u_pub = nh.advertise<std_msgs::Float64MultiArray>("state/com/u", 1000);
   desire_com_x_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/com/x", 1000);
   desire_com_u_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/com/u", 1000);
+
+  state_phase_pub = nh.advertise<std_msgs::Float64>("state/phase", 1000);
+  desire_phase_pub = nh.advertise<std_msgs::Float64>("desire/phase", 1000);
+
+  state_L_pub = nh.advertise<std_msgs::Float64MultiArray>("state/L", 1000);
+  desire_L_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/L", 1000);
 
   state_cost_pub = nh.advertise<std_msgs::Float64MultiArray>("state/cost", 1000);
   desire_tau_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/tau", 1000);
