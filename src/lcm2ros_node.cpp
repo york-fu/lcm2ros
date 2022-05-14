@@ -1,3 +1,6 @@
+#include <sstream>
+#include <signal.h>
+
 #include "ros/ros.h"
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float64MultiArray.h"
@@ -6,43 +9,46 @@
 #include "lcm_std_msgs/Float64.hpp"
 #include "lcm_std_msgs/Float64MultiArray.hpp"
 
-#include <sstream>
-#include <signal.h>
+static std::vector<std::string> f64_channel_name = {
+    "state/phase",
+    "desire/phase",
+};
+static std::vector<std::string> f64_array_channel_name = {
+    "joint/q",
+    "joint/v",
+    "joint/vdot",
+    "joint/current",
+    "raw/joint/q",
+    "raw/joint/v",
+    "raw/joint/vdot",
+    "raw/joint/current",
 
-ros::Publisher joint_q_pub;
-ros::Publisher joint_v_pub;
-ros::Publisher joint_vdot_pub;
-ros::Publisher joint_current_pub;
+    "state/q",
+    "state/v",
+    "state/vdot",
+    "desire/q",
+    "desire/v",
+    "desire/vdot",
+    "raw/state/q",
+    "raw/state/v",
+    "raw/state/vdot",
 
-ros::Publisher raw_joint_q_pub;
-ros::Publisher raw_joint_v_pub;
-ros::Publisher raw_joint_vdot_pub;
+    "state/com/x",
+    "state/com/u",
+    "desire/com/x",
+    "desire/com/u",
 
-ros::Publisher state_q_pub;
-ros::Publisher state_v_pub;
-ros::Publisher state_vdot_pub;
-ros::Publisher raw_state_q_pub;
-ros::Publisher raw_state_v_pub;
-ros::Publisher raw_state_vdot_pub;
-ros::Publisher desire_q_pub;
-ros::Publisher desire_v_pub;
-ros::Publisher desire_vdot_pub;
+    "state/L",
+    "desire/L",
 
-ros::Publisher state_com_x_pub;
-ros::Publisher state_com_u_pub;
-ros::Publisher desire_com_x_pub;
-ros::Publisher desire_com_u_pub;
+    "state/cost",
+    "desire/tau",
+};
 
-ros::Publisher state_phase_pub;
-ros::Publisher desire_phase_pub;
+static std::vector<ros::Publisher> f64_pub_vec;
+static std::vector<ros::Publisher> f64_array_pub_vec;
 
-ros::Publisher state_L_pub;
-ros::Publisher desire_L_pub;
-
-ros::Publisher state_cost_pub;
-ros::Publisher desire_tau_pub;
-
-pthread_t thread_lcm;
+static pthread_t thread_lcm;
 
 class MsgHandler
 {
@@ -54,15 +60,15 @@ public:
                    const std::string &chan,
                    const lcm_std_msgs::Float64 *msg)
   {
-    std_msgs::Float64 f64Msg;
-    f64Msg.data = msg->data;
-    if (chan == "state/phase")
+    std_msgs::Float64 f64_msg;
+    f64_msg.data = msg->data;
+    for (uint32_t i = 0; i < f64_channel_name.size(); i++)
     {
-      state_phase_pub.publish(f64Msg);
-    }
-    else if (chan == "desire/phase")
-    {
-      desire_phase_pub.publish(f64Msg);
+      if (chan == f64_channel_name[i])
+      {
+        f64_pub_vec[i].publish(f64_msg);
+        break;
+      }
     }
   }
 
@@ -74,101 +80,13 @@ public:
     f64array_msg.data.resize(msg->size);
     f64array_msg.data.assign(msg->data.begin(), msg->data.end());
 
-    if (chan == "state/q")
+    for (uint32_t i = 0; i < f64_array_channel_name.size(); i++)
     {
-      state_q_pub.publish(f64array_msg);
-    }
-    else if (chan == "state/v")
-    {
-      state_v_pub.publish(f64array_msg);
-    }
-    else if (chan == "state/vdot")
-    {
-      state_vdot_pub.publish(f64array_msg);
-    }
-    else if (chan == "raw/state/q")
-    {
-      raw_state_q_pub.publish(f64array_msg);
-    }
-    else if (chan == "raw/state/v")
-    {
-      raw_state_v_pub.publish(f64array_msg);
-    }
-    else if (chan == "raw/state/vdot")
-    {
-      raw_state_vdot_pub.publish(f64array_msg);
-    }
-    else if (chan == "joint/q")
-    {
-      joint_q_pub.publish(f64array_msg);
-    }
-    else if (chan == "joint/v")
-    {
-      joint_v_pub.publish(f64array_msg);
-    }
-    else if (chan == "joint/vdot")
-    {
-      joint_vdot_pub.publish(f64array_msg);
-    }
-    else if (chan == "joint/current")
-    {
-      joint_current_pub.publish(f64array_msg);
-    }
-    else if (chan == "raw/joint/q")
-    {
-      raw_joint_q_pub.publish(f64array_msg);
-    }
-    else if (chan == "raw/joint/v")
-    {
-      raw_joint_v_pub.publish(f64array_msg);
-    }
-    else if (chan == "raw/joint/vdot")
-    {
-      raw_joint_vdot_pub.publish(f64array_msg);
-    }
-    else if (chan == "desire/q")
-    {
-      desire_q_pub.publish(f64array_msg);
-    }
-    else if (chan == "desire/v")
-    {
-      desire_v_pub.publish(f64array_msg);
-    }
-    else if (chan == "desire/vdot")
-    {
-      desire_vdot_pub.publish(f64array_msg);
-    }
-    else if (chan == "state/com/x")
-    {
-      state_com_x_pub.publish(f64array_msg);
-    }
-    else if (chan == "state/com/u")
-    {
-      state_com_u_pub.publish(f64array_msg);
-    }
-    else if (chan == "desire/com/x")
-    {
-      desire_com_x_pub.publish(f64array_msg);
-    }
-    else if (chan == "desire/com/u")
-    {
-      desire_com_u_pub.publish(f64array_msg);
-    }
-    else if (chan == "state/L")
-    {
-      state_L_pub.publish(f64array_msg);
-    }
-    else if (chan == "desire/L")
-    {
-      desire_L_pub.publish(f64array_msg);
-    }
-    else if (chan == "state/cost")
-    {
-      state_cost_pub.publish(f64array_msg);
-    }
-    else if (chan == "desire/tau")
-    {
-      desire_tau_pub.publish(f64array_msg);
+      if (chan == f64_array_channel_name[i])
+      {
+        f64_array_pub_vec[i].publish(f64array_msg);
+        break;
+      }
     }
   }
 };
@@ -200,74 +118,28 @@ bool lcmInitial(lcm::LCM &lcm)
 
   MsgHandler msgHandler;
 
-  lcm.subscribe("joint/q", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("joint/v", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("joint/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("joint/current", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("raw/joint/q", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("raw/joint/v", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("raw/joint/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
-
-  lcm.subscribe("state/q", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("state/v", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("state/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("raw/state/q", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("raw/state/v", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("raw/state/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("desire/q", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("desire/v", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("desire/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
-
-  lcm.subscribe("state/com/x", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("state/com/u", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("desire/com/x", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("desire/com/u", &MsgHandler::f64arrayCallback, &msgHandler);
-
-  lcm.subscribe("state/phase", &MsgHandler::f64Callback, &msgHandler);
-  lcm.subscribe("desire/phase", &MsgHandler::f64Callback, &msgHandler);
-
-  lcm.subscribe("state/L", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("desire/L", &MsgHandler::f64arrayCallback, &msgHandler);
-
-  lcm.subscribe("state/cost", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("desire/tau", &MsgHandler::f64arrayCallback, &msgHandler);
+  for (uint32_t i = 0; i < f64_channel_name.size(); i++)
+  {
+    lcm.subscribe(f64_channel_name[i], &MsgHandler::f64Callback, &msgHandler);
+  }
+  for (uint32_t i = 0; i < f64_array_channel_name.size(); i++)
+  {
+    lcm.subscribe(f64_array_channel_name[i], &MsgHandler::f64arrayCallback, &msgHandler);
+  }
 
   return true;
 }
 
 void topicInitial(ros::NodeHandle &nh)
 {
-  joint_q_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/q", 1000);
-  joint_v_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/v", 1000);
-  joint_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/vdot", 1000);
-  joint_current_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/current", 1000);
-  raw_joint_q_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/joint/q", 1000);
-  raw_joint_v_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/joint/v", 1000);
-  raw_joint_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/joint/vdot", 1000);
-
-  state_q_pub = nh.advertise<std_msgs::Float64MultiArray>("state/q", 1000);
-  state_v_pub = nh.advertise<std_msgs::Float64MultiArray>("state/v", 1000);
-  state_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("state/vdot", 1000);
-  raw_state_q_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/state/q", 1000);
-  raw_state_v_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/state/v", 1000);
-  raw_state_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/state/vdot", 1000);
-  desire_q_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/q", 1000);
-  desire_v_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/v", 1000);
-  desire_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/vdot", 1000);
-
-  state_com_x_pub = nh.advertise<std_msgs::Float64MultiArray>("state/com/x", 1000);
-  state_com_u_pub = nh.advertise<std_msgs::Float64MultiArray>("state/com/u", 1000);
-  desire_com_x_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/com/x", 1000);
-  desire_com_u_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/com/u", 1000);
-
-  state_phase_pub = nh.advertise<std_msgs::Float64>("state/phase", 1000);
-  desire_phase_pub = nh.advertise<std_msgs::Float64>("desire/phase", 1000);
-
-  state_L_pub = nh.advertise<std_msgs::Float64MultiArray>("state/L", 1000);
-  desire_L_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/L", 1000);
-
-  state_cost_pub = nh.advertise<std_msgs::Float64MultiArray>("state/cost", 1000);
-  desire_tau_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/tau", 1000);
+  for (uint32_t i = 0; i < f64_channel_name.size(); i++)
+  {
+    f64_pub_vec.push_back(nh.advertise<std_msgs::Float64>(f64_channel_name[i], 1000));
+  }
+  for (uint32_t i = 0; i < f64_array_channel_name.size(); i++)
+  {
+    f64_array_pub_vec.push_back(nh.advertise<std_msgs::Float64MultiArray>(f64_array_channel_name[i], 1000));
+  }
 }
 
 void sigintHandler(int sig)
