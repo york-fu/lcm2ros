@@ -14,16 +14,16 @@ ros::Publisher joint_v_pub;
 ros::Publisher joint_vdot_pub;
 ros::Publisher joint_current_pub;
 
-ros::Publisher filter_joint_q_pub;
-ros::Publisher filter_joint_v_pub;
-ros::Publisher filter_joint_vdot_pub;
+ros::Publisher raw_joint_q_pub;
+ros::Publisher raw_joint_v_pub;
+ros::Publisher raw_joint_vdot_pub;
 
 ros::Publisher state_q_pub;
 ros::Publisher state_v_pub;
 ros::Publisher state_vdot_pub;
-ros::Publisher filter_state_q_pub;
-ros::Publisher filter_state_v_pub;
-ros::Publisher filter_state_vdot_pub;
+ros::Publisher raw_state_q_pub;
+ros::Publisher raw_state_v_pub;
+ros::Publisher raw_state_vdot_pub;
 ros::Publisher desire_q_pub;
 ros::Publisher desire_v_pub;
 ros::Publisher desire_vdot_pub;
@@ -86,17 +86,17 @@ public:
     {
       state_vdot_pub.publish(f64array_msg);
     }
-    else if (chan == "filter/state/q")
+    else if (chan == "raw/state/q")
     {
-      filter_state_q_pub.publish(f64array_msg);
+      raw_state_q_pub.publish(f64array_msg);
     }
-    else if (chan == "filter/state/v")
+    else if (chan == "raw/state/v")
     {
-      filter_state_v_pub.publish(f64array_msg);
+      raw_state_v_pub.publish(f64array_msg);
     }
-    else if (chan == "filter/state/vdot")
+    else if (chan == "raw/state/vdot")
     {
-      filter_state_vdot_pub.publish(f64array_msg);
+      raw_state_vdot_pub.publish(f64array_msg);
     }
     else if (chan == "joint/q")
     {
@@ -114,17 +114,17 @@ public:
     {
       joint_current_pub.publish(f64array_msg);
     }
-    else if (chan == "filter/joint/q")
+    else if (chan == "raw/joint/q")
     {
-      filter_joint_q_pub.publish(f64array_msg);
+      raw_joint_q_pub.publish(f64array_msg);
     }
-    else if (chan == "filter/joint/v")
+    else if (chan == "raw/joint/v")
     {
-      filter_joint_v_pub.publish(f64array_msg);
+      raw_joint_v_pub.publish(f64array_msg);
     }
-    else if (chan == "filter/joint/vdot")
+    else if (chan == "raw/joint/vdot")
     {
-      filter_joint_vdot_pub.publish(f64array_msg);
+      raw_joint_vdot_pub.publish(f64array_msg);
     }
     else if (chan == "desire/q")
     {
@@ -204,16 +204,16 @@ bool lcmInitial(lcm::LCM &lcm)
   lcm.subscribe("joint/v", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("joint/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("joint/current", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("filter/joint/q", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("filter/joint/v", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("filter/joint/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("raw/joint/q", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("raw/joint/v", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("raw/joint/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
 
   lcm.subscribe("state/q", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("state/v", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("state/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("filter/state/q", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("filter/state/v", &MsgHandler::f64arrayCallback, &msgHandler);
-  lcm.subscribe("filter/state/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("raw/state/q", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("raw/state/v", &MsgHandler::f64arrayCallback, &msgHandler);
+  lcm.subscribe("raw/state/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/q", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/v", &MsgHandler::f64arrayCallback, &msgHandler);
   lcm.subscribe("desire/vdot", &MsgHandler::f64arrayCallback, &msgHandler);
@@ -241,16 +241,16 @@ void topicInitial(ros::NodeHandle &nh)
   joint_v_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/v", 1000);
   joint_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/vdot", 1000);
   joint_current_pub = nh.advertise<std_msgs::Float64MultiArray>("joint/current", 1000);
-  filter_joint_q_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/joint/q", 1000);
-  filter_joint_v_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/joint/v", 1000);
-  filter_joint_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/joint/vdot", 1000);
+  raw_joint_q_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/joint/q", 1000);
+  raw_joint_v_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/joint/v", 1000);
+  raw_joint_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/joint/vdot", 1000);
 
   state_q_pub = nh.advertise<std_msgs::Float64MultiArray>("state/q", 1000);
   state_v_pub = nh.advertise<std_msgs::Float64MultiArray>("state/v", 1000);
   state_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("state/vdot", 1000);
-  filter_state_q_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/state/q", 1000);
-  filter_state_v_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/state/v", 1000);
-  filter_state_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("filter/state/vdot", 1000);
+  raw_state_q_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/state/q", 1000);
+  raw_state_v_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/state/v", 1000);
+  raw_state_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("raw/state/vdot", 1000);
   desire_q_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/q", 1000);
   desire_v_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/v", 1000);
   desire_vdot_pub = nh.advertise<std_msgs::Float64MultiArray>("desire/vdot", 1000);
