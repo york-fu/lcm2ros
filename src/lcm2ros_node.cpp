@@ -38,6 +38,15 @@ static std::vector<std::string> f64_array_channel_name = {
     "desire/com/x",
     "desire/com/u",
 
+    "state/lfoot",
+    "state/lfootv",
+    "state/rfoot",
+    "state/rfootv",
+    "desire/lfoot",
+    "desire/lfootv",
+    "desire/rfoot",
+    "desire/rfootv",
+
     "state/L",
     "desire/L",
 
