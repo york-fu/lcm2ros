@@ -34,6 +34,8 @@ static std::vector<std::string> f64_array_channel_name = {
     "state/rfoot",
     "state/rfootv",
     "state/com/x",
+    "state/com/u",
+    "state/tau",
     "state/L",
 
     "desire/q",
@@ -45,6 +47,7 @@ static std::vector<std::string> f64_array_channel_name = {
     "desire/rfootv",
     "desire/com/x",
     "desire/com/u",
+    "desire/tau",
     "desire/L",
 
     "command/q",
@@ -58,7 +61,10 @@ static std::vector<std::string> f64_array_channel_name = {
     "command/com/u",
     "command/tau",
 
-    "control/cost",
+    "wbc/cost"
+    "wbc/tau"
+    "wbc/lambda"
+
     "control/data",
 };
 
