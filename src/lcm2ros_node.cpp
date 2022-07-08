@@ -61,11 +61,11 @@ static std::vector<std::string> f64_array_channel_name = {
     "command/com/u",
     "command/tau",
 
-    "wbc/cost"
-    "wbc/tau"
-    "wbc/lambda"
+    "wbc/cost",
+    "wbc/tau",
+    "wbc/lambda",
 
-    "control/data",
+    "control/data"
 };
 
 static std::vector<ros::Publisher> f64_pub_vec;
